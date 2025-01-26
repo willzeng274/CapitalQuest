@@ -213,7 +213,7 @@ function StartScreen() {
               
               <div className="bg-green-900 rounded-xl p-8 mb-10 border border-emerald-700">
                 <p className="text-2xl text-white mb-4">
-                  Would you like to purchase life insurance for $500?
+                  Would you like to purchase life insurance?
                 </p>
                 <p className="text-lg text-emerald-200">
                   Protect your family's financial future and ensure long-term security.
