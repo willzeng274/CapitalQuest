@@ -1,15 +1,11 @@
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree, useFrame } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import { Sky } from '@react-three/drei'
 import { Perf } from 'r3f-perf'
-import { Suspense, useCallback, useEffect, useState, useRef } from 'react'
+import { Suspense, useEffect, useState, useRef } from 'react'
 import { EcctrlJoystick } from 'ecctrl'
 import Lights from './Lights'
 import World from './World'
-// import GameCharacter from './components/Character'
-import Flamingo from './models/Flamingo'
-import TranslationHelper from './TranslationHelper'
-import Frog from './models/Frog'
 import GameCharacter from './components/Character'
 import { useDialogStore } from './utils/store'
 import Dialog from './components/Dialog'
@@ -19,6 +15,9 @@ import GameOver from './GameOver'
 import { SmartphoneIcon } from 'lucide-react'
 import { usePhoneStore } from './utils/phone'
 import PhoneMenu from './PhoneMenu'
+import { motion } from 'framer-motion'
+import { Sparkles, Shield, TrendingUp } from 'lucide-react'
+import Cityboyjj from './models/Cityboyjj'
 
 function DayNightCycle() {
   const timeRef = useRef(0)
@@ -60,37 +59,241 @@ function DayNightCycle() {
   )
 }
 
+function TransitionOverlay({ onComplete }: { onComplete: () => void }) {
+  return (
+    <>
+      {/* First wave */}
+      <motion.div
+        className="fixed inset-0 z-[999999999999] pointer-events-none bg-green-600"
+        initial={{ clipPath: 'circle(0% at 50% 50%)' }}
+        animate={{ 
+          clipPath: 'circle(150% at 50% 50%)',
+        }}
+        transition={{ 
+          duration: 1,
+          ease: [0.76, 0, 0.24, 1]
+        }}
+      />
+      {/* Second wave */}
+      <motion.div
+        className="fixed inset-0 z-[999999999998] pointer-events-none bg-green-700"
+        initial={{ clipPath: 'circle(0% at 50% 50%)' }}
+        animate={{ 
+          clipPath: 'circle(150% at 50% 50%)',
+        }}
+        transition={{ 
+          duration: 1,
+          delay: 0.1,
+          ease: [0.76, 0, 0.24, 1]
+        }}
+        onAnimationComplete={onComplete}
+      />
+    </>
+  )
+}
+
+function StartScreenBackground() {
+  const { scene } = useThree()
+  
+  useFrame(() => {
+    scene.rotation.y += 0.001 // Slow auto-rotation
+  })
+
+  return (
+    <>
+      <Sky 
+        distance={450000}
+        sunPosition={[0, 1, 0]}
+        inclination={0.5}
+        azimuth={0.25}
+      />
+      <ambientLight intensity={0.5} />
+      <directionalLight 
+        position={[10, 10, 5]} 
+        intensity={1.5} 
+        castShadow
+      />
+      <Cityboyjj
+        scale={20} 
+        position={[0, -10, -50]}
+        rotation={[0, Math.PI / 4, 0]}
+      />
+    </>
+  )
+}
+
+function StartScreen() {
+  const { startGame, buyLifeInsurance } = useGameStore()
+  const [selected, setSelected] = useState<'yes' | 'no' | null>(null)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+
+  const handleStart = () => {
+    setIsTransitioning(true)
+    if (selected === 'yes') {
+      buyLifeInsurance()
+    }
+    // startGame will be called after transition completes
+  }
+
+  return (
+    <div className="fixed inset-0 bg-gradient-to-br from-green-950 via-green-900 to-green-950 flex items-center justify-center z-[99999999999] overflow-hidden">
+      {/* 3D Background with darker overlay */}
+      <div className="absolute inset-0 -z-20">
+        <div className="absolute inset-0 bg-black/30 z-10" />
+        <Canvas>
+          <Suspense fallback={null}>
+            <StartScreenBackground />
+          </Suspense>
+        </Canvas>
+      </div>
+
+      {/* Main content container - adjusted max width and padding */}
+      <div className="max-w-5xl w-full mx-auto px-8 py-12">
+        <div className="space-y-12">
+          {/* Title Section - adjusted spacing */}
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h1 className="text-8xl font-bold text-white tracking-tight drop-shadow-lg mb-4">
+              Capital<span className="text-emerald-400">Quest</span>
+            </h1>
+            <p className="text-3xl text-emerald-200 drop-shadow-lg">
+              Master Your Financial Future
+            </p>
+          </motion.div>
+
+          {/* Feature Cards - adjusted grid and spacing */}
+          <motion.div className="grid grid-cols-3 gap-6 mb-16">
+            {[
+              {
+                icon: <TrendingUp className="w-12 h-12" />,
+                title: "Investment",
+                description: "Learn market dynamics"
+              },
+              {
+                icon: <Shield className="w-12 h-12" />,
+                title: "Protection",
+                description: "Secure your assets"
+              },
+              {
+                icon: <Sparkles className="w-12 h-12" />,
+                title: "Growth",
+                description: "Build your wealth"
+              }
+            ].map((feature) => (
+              <motion.div
+                key={feature.title}
+                className="bg-green-950 rounded-2xl p-8 border-2 border-emerald-600 shadow-lg flex flex-col items-center text-center"
+                whileHover={{ scale: 1.02, backgroundColor: "#052e16" }}
+                transition={{ duration: 0.2 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="text-emerald-400 mb-6 p-3 bg-green-900/50 rounded-full">
+                  {feature.icon}
+                </div>
+                <h3 className="text-2xl font-semibold text-white mb-3">{feature.title}</h3>
+                <p className="text-emerald-200 text-lg">{feature.description}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Life Insurance Choice - adjusted container and spacing */}
+          <motion.div 
+            className="bg-green-950 rounded-2xl border-2 border-emerald-600 shadow-lg overflow-hidden max-w-3xl mx-auto"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <div className="p-8 text-center">
+              <h2 className="text-4xl font-semibold text-white mb-8">Before You Begin</h2>
+              
+              <div className="bg-green-900 rounded-xl p-8 mb-10 border border-emerald-700">
+                <p className="text-2xl text-white mb-4">
+                  Would you like to purchase life insurance for $500?
+                </p>
+                <p className="text-lg text-emerald-200">
+                  Protect your family's financial future and ensure long-term security.
+                </p>
+              </div>
+
+              <div className="flex gap-8 justify-center">
+                <motion.button
+                  className={`px-10 py-5 rounded-xl text-xl font-semibold transition-all shadow-lg ${
+                    selected === 'yes'
+                      ? 'bg-emerald-500 text-white scale-105 border-2 border-emerald-400'
+                      : 'bg-green-900 text-white hover:bg-green-800 border-2 border-emerald-600'
+                  }`}
+                  onClick={() => {
+                    setSelected('yes')
+                    setTimeout(handleStart, 500)
+                  }}
+                  whileHover={{ scale: selected === 'yes' ? 1.05 : 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Yes, Protect My Family
+                </motion.button>
+                <motion.button
+                  className={`px-10 py-5 rounded-xl text-xl font-semibold transition-all shadow-lg ${
+                    selected === 'no'
+                      ? 'bg-red-500 text-white scale-105 border-2 border-red-400'
+                      : 'bg-green-900 text-white hover:bg-green-800 border-2 border-emerald-600'
+                  }`}
+                  onClick={() => {
+                    setSelected('no')
+                    setTimeout(handleStart, 500)
+                  }}
+                  whileHover={{ scale: selected === 'no' ? 1.05 : 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  No, I'll Take the Risk
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Transition Overlay */}
+      {isTransitioning && (
+        <TransitionOverlay onComplete={() => startGame()} />
+      )}
+    </div>
+  )
+}
+
+function BackgroundMusic() {
+  useEffect(() => {
+    const audio = new Audio('/ost.mp3')
+    audio.loop = true
+    audio.volume = 0.1 // Adjust volume as needed
+    
+    // Start playing
+    audio.play().catch(error => {
+      console.log("Audio playback failed:", error)
+    })
+
+    // Cleanup on unmount
+    return () => {
+      audio.pause()
+      audio.currentTime = 0
+    }
+  }, [])
+
+  return null
+}
+
 export default function App() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
-
-  // add a flamingo to the scene every time "f" is pressed
-  const [flamingos, setFlamingos] = useState<JSX.Element[]>([])
-  const [frogs, setFrogs] = useState<JSX.Element[]>([])
-  const { isGameOver, incrementDay } = useGameStore()
+  const { isGameOver, incrementDay, hasStarted } = useGameStore()
   const { isOpen } = usePhoneStore()
 
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (event.key === 'f') {
-      setFlamingos([...flamingos, <TranslationHelper key={flamingos.length}><Flamingo /></TranslationHelper>])
-    }
-    if (event.key === 'g') {
-      setFrogs([...frogs, <TranslationHelper key={frogs.length}><Frog /></TranslationHelper>])
-    }
-    if (event.key === 'd') {
-      setFlamingos([])
-      setFrogs([])
-    }
-  }, [flamingos, frogs])
   const { currentDialog } = useDialogStore()
 
   const DAY_LENGTH = 60 // 5 seconds per day
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [handleKeyDown])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -100,12 +303,17 @@ export default function App() {
     return () => clearInterval(interval)
   }, [incrementDay])
 
+  if (!hasStarted) {
+    return <StartScreen />
+  }
+
   if (isGameOver) {
     return <GameOver />
   }
 
   return (
     <>
+      <BackgroundMusic />
       {isMobile && <EcctrlJoystick />}
       {currentDialog && <Dialog />}
       {isOpen && <PhoneMenu />}
@@ -127,8 +335,6 @@ export default function App() {
             {/* <PerspectiveCamera makeDefault position={[10, 200, 30]} rotation={[-Math.PI/2, 0, Math.PI]} /> */}
             {/* <OrbitControls makeDefault /> */}
             <World />
-            {flamingos}
-            {frogs}
           </Suspense>
         </Physics>
       </Canvas>

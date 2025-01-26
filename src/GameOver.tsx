@@ -3,9 +3,8 @@ import { useGameStore } from './utils/gameState'
 import { usePortfolioStore } from './utils/portfolio'
 
 export default function GameOver() {
-    const { categories, dayCount } = useGameStore()
-    const { totalCash, propertiesOwned, monthlyIncome, netWorthGrowth } = usePortfolioStore()
-    const hasLifeInsurance = true // TODO: Get this from store
+    const { categories, dayCount, lifeInsurance } = useGameStore()
+    const { totalCash, propertiesOwned, monthlyIncome, netWorthGrowth } = usePortfolioStore()   
 
     return (
         <div className="h-screen overflow-y-auto bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4">
@@ -72,7 +71,9 @@ export default function GameOver() {
 
                             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                                 <div className="text-blue-300 mb-1">Simulated Growth Rate</div>
-                                <div className="text-3xl font-bold text-green-400">+{netWorthGrowth}%</div>
+                                <div className={`text-3xl font-bold ${netWorthGrowth < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                                    {netWorthGrowth}%
+                                </div>
                             </div>
                         </div>
                     </motion.div>
@@ -90,12 +91,12 @@ export default function GameOver() {
                         </h2>
                         <div className="space-y-4">
                             <div className={`p-4 rounded-xl border ${
-                                hasLifeInsurance 
+                                lifeInsurance 
                                     ? 'border-green-500/30 bg-green-500/10' 
                                     : 'border-red-500/30 bg-red-500/10'
                             }`}>
                                 <h3 className="font-semibold text-lg mb-2 text-white">Life Insurance Coverage</h3>
-                                {hasLifeInsurance ? (
+                                {lifeInsurance ? (
                                     <p className="text-blue-200">
                                         Simulation indicates optimal protection with comprehensive life insurance coverage. 
                                         Beneficiaries are secured with established wealth transfer protocols.
@@ -112,7 +113,9 @@ export default function GameOver() {
                                 <h3 className="font-semibold text-lg mb-2 text-white">Risk Assessment Score</h3>
                                 <div className="flex items-center justify-between">
                                     <span className="text-blue-200">Overall Protection Level</span>
-                                    <span className="text-xl font-bold text-blue-400">7.5/10</span>
+                                    <span className="text-xl font-bold text-blue-400">
+                                        {lifeInsurance ? '10/10' : '0/10'}
+                                    </span>
                                 </div>
                             </div>
                         </div>

@@ -174,6 +174,33 @@ function SparklineChart({ seed, trend = 1, yearOffset = 0 }: {
     )
 }
 
+// Add this new component for the close button
+function CloseButton({ onClick }: { onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="absolute top-4 left-4 z-50 p-2 rounded-full bg-white/10 hover:bg-white/20 
+                transition-all duration-200 group"
+        >
+            {/* biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
+            <svg
+                className="w-6 h-6 text-white group-hover:scale-110 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                />
+            </svg>
+        </button>
+    )
+}
+
 export default function PhoneMenu() {
     const [activeTab, setActiveTab] = useState('map')
     const [selectedYear, setSelectedYear] = useState(2025)
@@ -246,20 +273,13 @@ export default function PhoneMenu() {
     }
 
     return (
-        // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
-        <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999999999]"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                    setIsOpen(false)
-                }
-            }}
-        >   
-            {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-            <div 
-                className="absolute inset-0 flex items-center justify-center"
-                onClick={() => setIsOpen(false)}
-            >
+        // Remove onClick from this div
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999999999]">
+            {/* Remove onClick from this div too */}
+            <div className="absolute inset-0 flex items-center justify-center">
+                {/* Add close button */}
+                <CloseButton onClick={() => setIsOpen(false)} />
+                
                 <MainSvg>
                     <div className="w-full h-full flex flex-col">
                         {/* Navigation Bar - Pill Style */}
