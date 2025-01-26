@@ -5,11 +5,13 @@ Files: frog.glb [1.02MB] > /Users/user/Desktop/Projects/geesehacks/public/frog-t
 */
 
 import type * as THREE from 'three'
-import React from 'react'
-import { useGraph } from '@react-three/fiber'
+import React, { useCallback, useEffect } from 'react'
+import { useFrame, useGraph } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import type { GLTF } from 'three-stdlib'
 import { SkeletonUtils } from 'three-stdlib'
+import { LoopOnce } from 'three'
+import type { AnimationAction } from 'three'
 
 type ActionName = 'CharacterArmature|Death' | 'CharacterArmature|Duck' | 'CharacterArmature|HitReact' | 'CharacterArmature|Idle' | 'CharacterArmature|Idle_Gun' | 'CharacterArmature|Jump' | 'CharacterArmature|Jump_Idle' | 'CharacterArmature|Jump_Land' | 'CharacterArmature|No' | 'CharacterArmature|Punch' | 'CharacterArmature|Run' | 'CharacterArmature|Run_Gun' | 'CharacterArmature|Run_Gun_Shoot' | 'CharacterArmature|Walk' | 'CharacterArmature|Walk_Gun' | 'CharacterArmature|Wave' | 'CharacterArmature|Weapon' | 'CharacterArmature|Yes'
 
@@ -28,12 +30,64 @@ type GLTFResult = GLTF & {
   animations: GLTFAction[]
 }
 
-export default function Model(props: JSX.IntrinsicElements['group']) {
+interface FrogProps {
+  action?: ActionName
+}
+
+export default function Model(props: FrogProps & JSX.IntrinsicElements['group']) {
   const group = React.useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF('/models/frog-transformed.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone) as GLTFResult
-  useAnimations(animations, group)
+  const { mixer, actions } = useAnimations(animations, group as React.MutableRefObject<THREE.Group>)
+
+  useFrame((_, delta) => {
+    mixer.update(delta)
+  })
+
+  const resetToIdle = useCallback((action: AnimationAction) => {
+    action.stop()
+    const idleAction = actions['CharacterArmature|HitReact']
+    idleAction?.setEffectiveTimeScale(0.2)
+    if (idleAction) {
+      idleAction.reset()
+      idleAction.play()
+    }
+  }, [actions])
+
+  useEffect(() => {
+    if (!props.action) return
+
+    // Stop all current animations
+    for (const action of Object.values(actions)) {
+      if (action) {
+        action.stop()
+      }
+    }
+
+    const action = actions[props.action]
+    if (action) {
+      // Configure the animation
+      action.reset()
+      action.setLoop(LoopOnce, 1)
+      action.clampWhenFinished = true
+      action.play()
+
+      // When non-idle animation ends, switch back to idle
+      if (props.action !== 'CharacterArmature|HitReact') {
+        action.getMixer().addEventListener('finished', () => resetToIdle(action))
+      }
+    }
+
+    // Cleanup
+    return () => {
+      if (action) {
+        action.getMixer().removeEventListener('finished', () => resetToIdle(action))
+        action.stop()
+      }
+    }
+  }, [props.action, actions, resetToIdle])
+
   return (
     <group ref={group} {...props} dispose={null}>
       <group name="Scene">

@@ -6,7 +6,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 
 def predict_stock_direction(ticker_symbol, prediction_days=5, start_date='2000-01-01'):
-    # Fetch stock data
     try:
         ticker = yf.Ticker(ticker_symbol)
         data = ticker.history(start=start_date)
@@ -14,20 +13,16 @@ def predict_stock_direction(ticker_symbol, prediction_days=5, start_date='2000-0
         if len(data) < 500:
             raise ValueError(f"Insufficient data for {ticker_symbol}")
         
-        # Prepare features
         data['PriceChange'] = data['Close'].pct_change(prediction_days)
         data['Target'] = (data['PriceChange'] > 0).astype(int)
         
-        # Create lagged features
         features = ['Open', 'High', 'Low', 'Close', 'Volume']
         for feature in features:
             for lag in range(1, prediction_days + 1):
                 data[f'{feature}_Lag_{lag}'] = data[feature].shift(lag)
         
-        # Drop NaN rows
         data.dropna(inplace=True)
         
-        # Prepare feature columns
         feature_columns = [
             col for col in data.columns 
             if any(f in col for f in ['Open', 'High', 'Low', 'Close', 'Volume']) 
@@ -37,23 +32,18 @@ def predict_stock_direction(ticker_symbol, prediction_days=5, start_date='2000-0
         X = data[feature_columns]
         y = data['Target']
         
-        # Split the data
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
-        # Scale features
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
         
-        # Train Random Forest Classifier
         clf = RandomForestClassifier(n_estimators=100, random_state=42)
         clf.fit(X_train_scaled, y_train)
         
-        # Evaluate the model
         train_accuracy = clf.score(X_train_scaled, y_train)
         test_accuracy = clf.score(X_test_scaled, y_test)
         
-        # Predict most recent stock direction
         latest_features = X.iloc[-1].values.reshape(1, -1)
         latest_features_scaled = scaler.transform(latest_features)
         prediction = clf.predict(latest_features_scaled)

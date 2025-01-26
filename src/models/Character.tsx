@@ -5,7 +5,7 @@ Files: character.glb [1.04MB] > /Users/user/Desktop/Projects/geesehacks/public/c
 */
 
 import type * as THREE from 'three'
-import React, { useEffect } from 'react'
+import React, { forwardRef } from 'react'
 import { useGraph } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import type { GLTF } from 'three-stdlib'
@@ -28,18 +28,14 @@ type GLTFResult = GLTF & {
   animations: GLTFAction[]
 }
 
-export default function Model(props: JSX.IntrinsicElements['group']) {
-  const group = React.useRef<THREE.Group>(null)
+export default forwardRef(function Model(props: JSX.IntrinsicElements['group'] & { action?: ActionName }, ref: React.Ref<THREE.Group>) {
   const { scene, animations } = useGLTF('/models/character-transformed.glb')
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene])
   const { nodes, materials } = useGraph(clone) as GLTFResult
-  const { actions } = useAnimations(animations, group)
-  // play idle animation
-  useEffect(() => {
-    actions?.idle?.play()
-  }, [actions])
+  useAnimations(animations, ref as React.MutableRefObject<THREE.Group>)
+
   return (
-    <group ref={group} {...props} dispose={null}>
+    <group ref={ref} {...props} dispose={null}>
       <group name="Scene">
         <group name="CharacterArmature" rotation={[-Math.PI / 2, 0, 0]} scale={100}>
           <primitive object={nodes.Root} />
@@ -48,6 +44,6 @@ export default function Model(props: JSX.IntrinsicElements['group']) {
       </group>
     </group>
   )
-}
+})
 
 useGLTF.preload('/character-transformed.glb')
