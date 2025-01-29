@@ -1,4 +1,4 @@
-import  { useState } from 'react'
+import { useState } from 'react'
 import { usePortfolioStore } from '../utils/portfolio'
 import { useDialogStore, type DialogOption } from '../utils/store'
 
@@ -6,14 +6,14 @@ export default function Dialog() {
     const { currentDialog, selectOption, clearDialog } = useDialogStore()
     const portfolioStore = usePortfolioStore()
     const [sliderValue, setSliderValue] = useState(50)
-    
+
     if (!currentDialog) return null
 
     const handleNext = () => {
         if (currentDialog.next) {
-            selectOption({ 
+            selectOption({
                 text: 'Continue',
-                next: currentDialog.next 
+                next: currentDialog.next
             })
         } else {
             if (currentDialog.onEnd) currentDialog.onEnd(portfolioStore)
@@ -42,9 +42,9 @@ export default function Dialog() {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div 
-                className="absolute inset-0 bg-black/50" 
+        <div className="fixed inset-0 z-[999999999] flex items-center justify-center">
+            <div
+                className="absolute inset-0 bg-black/50"
                 onClick={handleBackdropClick}
                 onKeyDown={handleBackdropClick}
                 role="button"
@@ -61,7 +61,7 @@ export default function Dialog() {
                 {/* biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation> */}
                 <p className="text-gray-700 whitespace-pre-line" dangerouslySetInnerHTML={{
                     __html: currentDialog.text
-                    }} />
+                }} />
 
                 {/* Options or Next button */}
                 <div className="flex justify-end gap-3 pt-4">
@@ -75,7 +75,7 @@ export default function Dialog() {
                                             <span>{option.minLabel || 'Min'}</span>
                                             <span>{option.maxLabel || 'Max'}</span>
                                         </div>
-                                        <input 
+                                        <input
                                             type="range"
                                             min={option.min || 0}
                                             max={option.max || 100}
