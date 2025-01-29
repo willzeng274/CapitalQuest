@@ -127,16 +127,8 @@ function StartScreen() {
   const [selected, setSelected] = useState<'yes' | 'no' | null>(null)
   const [isTransitioning, setIsTransitioning] = useState(false)
 
-  const handleStart = () => {
-    setIsTransitioning(true)
-    if (selected === 'yes') {
-      buyLifeInsurance()
-    }
-    // startGame will be called after transition completes
-  }
-
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-green-950 via-green-900 to-green-950 flex items-center justify-center z-[99999999999] overflow-hidden">
+    <div className="fixed inset-0 bg-gradient-to-br from-green-950 via-green-900 to-green-950 overflow-auto md:flex md:items-center md:justify-center z-[99999999999] md:overflow-hidden">
       {/* 3D Background with darker overlay */}
       <div className="absolute inset-0 -z-20">
         <div className="absolute inset-0 bg-black/30 z-10" />
@@ -157,7 +149,7 @@ function StartScreen() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-8xl font-bold text-white tracking-tight drop-shadow-lg mb-4">
+            <h1 className="text-4xl md:text-8xl font-bold text-white tracking-tight drop-shadow-lg mb-4">
               Capital<span className="text-emerald-400">Quest</span>
             </h1>
             <p className="text-3xl text-emerald-200 drop-shadow-lg">
@@ -166,7 +158,7 @@ function StartScreen() {
           </motion.div>
 
           {/* Feature Cards - adjusted grid and spacing */}
-          <motion.div className="grid grid-cols-3 gap-6 mb-16">
+          <motion.div className="hidden md:grid grid-cols-3 gap-6 mb-16">
             {[
               {
                 icon: <TrendingUp className="w-12 h-12" />,
@@ -209,27 +201,31 @@ function StartScreen() {
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             <div className="p-8 text-center">
-              <h2 className="text-4xl font-semibold text-white mb-8">Before You Begin</h2>
+              <h2 className="text-2xl md:text-4xl font-semibold text-white mb-8">Before You Begin</h2>
               
               <div className="bg-green-900 rounded-xl p-8 mb-10 border border-emerald-700">
-                <p className="text-2xl text-white mb-4">
+                <p className="text-base md:text-2xl text-white mb-4">
                   Would you like to purchase life insurance?
                 </p>
-                <p className="text-lg text-emerald-200">
+                <p className="text-sm md:text-lg text-emerald-200">
                   Protect your family's financial future and ensure long-term security.
                 </p>
               </div>
 
-              <div className="flex gap-8 justify-center">
+              <div className="flex gap-4 md:gap-8 justify-center">
                 <motion.button
-                  className={`px-10 py-5 rounded-xl text-xl font-semibold transition-all shadow-lg ${
+                  className={`px-8 py-4 rounded-xl text-base md:text-xl font-semibold transition-all shadow-lg ${
                     selected === 'yes'
                       ? 'bg-emerald-500 text-white scale-105 border-2 border-emerald-400'
                       : 'bg-green-900 text-white hover:bg-green-800 border-2 border-emerald-600'
                   }`}
                   onClick={() => {
                     setSelected('yes')
-                    setTimeout(handleStart, 500)
+                    setIsTransitioning(true)
+                    setTimeout(() => {
+                      buyLifeInsurance()
+                      startGame()
+                    }, 1000)
                   }}
                   whileHover={{ scale: selected === 'yes' ? 1.05 : 1.1 }}
                   whileTap={{ scale: 0.95 }}
@@ -237,14 +233,17 @@ function StartScreen() {
                   Yes, Protect My Family
                 </motion.button>
                 <motion.button
-                  className={`px-10 py-5 rounded-xl text-xl font-semibold transition-all shadow-lg ${
+                  className={`px-8 py-4 rounded-xl text-base md:text-xl font-semibold transition-all shadow-lg ${
                     selected === 'no'
                       ? 'bg-red-500 text-white scale-105 border-2 border-red-400'
                       : 'bg-green-900 text-white hover:bg-green-800 border-2 border-emerald-600'
                   }`}
                   onClick={() => {
                     setSelected('no')
-                    setTimeout(handleStart, 500)
+                    setIsTransitioning(true)
+                    setTimeout(() => {
+                      startGame()
+                    }, 1000)
                   }}
                   whileHover={{ scale: selected === 'no' ? 1.05 : 1.1 }}
                   whileTap={{ scale: 0.95 }}
